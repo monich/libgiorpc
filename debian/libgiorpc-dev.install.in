@@ -1,0 +1,3 @@
+debian/tmp/@LIBDIR@/libgiorpc.so @LIBDIR@
+debian/tmp/@LIBDIR@/pkgconfig/libgiorpc.pc @LIBDIR@/pkgconfig
+debian/tmp/usr/include/* usr/include

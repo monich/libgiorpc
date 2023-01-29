@@ -1,0 +1,33 @@
+GIORPC_1.0 {
+global:
+    giorpc_error_quark;
+    giorpc_log;
+    giorpc_peer_add_cancel_handler;
+    giorpc_peer_add_notify_handler;
+    giorpc_peer_add_request_handler;
+    giorpc_peer_add_state_handler;
+    giorpc_peer_call;
+    giorpc_peer_call_sync;
+    giorpc_peer_cancel;
+    giorpc_peer_new;
+    giorpc_peer_notify;
+    giorpc_peer_ref;
+    giorpc_peer_remove_handler;
+    giorpc_peer_remove_handlers;
+    giorpc_peer_setup;
+    giorpc_peer_start;
+    giorpc_peer_stop;
+    giorpc_peer_unref;
+    giorpc_request_add_cancel_handler;
+    giorpc_request_complete;
+    giorpc_request_drop;
+    giorpc_request_flags;
+    giorpc_request_id;
+    giorpc_request_is_cancelled;
+    giorpc_request_ref;
+    giorpc_request_remove_cancel_handler;
+    giorpc_request_unref;
+    giorpc_version;
+local:
+    *;
+};

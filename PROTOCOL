@@ -1,0 +1,261 @@
+Protocol
+========
+
+This is a general purpose stream-based RPC protocol.
+
+The protocol is assumed to run on top of a secure, authenticated
+stream. User authentication and protection against network-level
+attacks are assumed to be provided by the underlying transport.
+
+One could argue that IID and CODE parameters of NOTIFY and REQUEST
+packets are slightly redundant. The motivation behind splitting
+notification and request codes into the two distinct parts is to
+make it easier to write modular implementations of particular RPC
+protocols which can benefit from splitting into several interfaces
+in an object-oriented way.
+
+The IID can be used to look up the interface handler and the CODE
+would identify individual requests (methods) inside each interface.
+The advantages of such an approach seem to be worth the small
+overhead (which could be as small as a single byte per NOTIFY or
+REQUEST packet).
+
+1. Data structures
+   ---------------
+
+1.1. Multi-byte numbers
+
+A multi-byte number (MBN) consists of a series of octets, where
+the most significant bit is the continuation flag and the remaining
+7 bits are a scalar value. The continuation flag indicates that an
+octet is not the end of the multi-byte sequence. Most significant
+chunks come first.
+
+A single integer value is encoded into a sequence of N octets.
+The first N-1 octets have the continuation flag set to a value
+of one (1). The final octet in the series has a continuation flag
+value of zero (0).
+
+Values [0..127] are encoded as a single byte.
+
+Multi-byte numbers are unsigned.
+
+1.2. TLV block
+
+A structure contiaining generic tagged data.
+
+   +---------------
+   |  T (MBN)       Tag (non-zero)
+   +---------------
+   |  L (MBN)       Length (can be zero)
+   +---------------
+   |  V (L bytes)   Value (L bytes of tag specific data)
+   +---------------
+
+The tag defines the format of the data, and if the tag is unknown
+the whole thing can be easily skipped.
+
+It's suggested that the DATA part of the REQUEST and RESULT packets
+contains a list of TLVs:
+
+   +---+---+---+---+---+---+---+---+
+   |  N (MBN)
+   +---
+   |  TLV (repeated N times)
+   +---
+
+but it's not really required. From the protocol's point of view
+the DATA may contain anything, as long as the recipient knows how
+to decode it.
+
+2. Packet structure
+   ----------------
+
+All packets have the following structure:
+
+   +---+---+---+---+---+---+---+---+
+   |  TYPE                         |
+   +---+---+---+---+---+---+---+---+
+   |  N (unsigned MBN)
+   +---
+   |  PAYLOAD (N bytes)
+   +---
+
+The following packet types are defined:
+
+   0x01 START
+   0x02 FINISH
+   0x03 NOTIFY
+   0x04 REQUEST
+   0x05 RESULT
+   0x06 ERROR
+   0x07 CANCEL
+
+The maximum allowed N is 0x1fffff (2097151) bytes, i.e. the data
+length fits into 21 bits (which takes no more than 3 bytes in MBN
+encoding). If the N is larger than that, it's considered a protocol
+violation and the connection gets silently terminated.
+
+Packets of unknown types should be skipped and ignored.
+
+2.1. START
+
+   +---+---+---+---+---+---+---+---+
+   |  0x01                         |
+   +---+---+---+---+---+---+---+---+
+   |  N (unsigned MBN)
+   +---
+   |  M (unsigned MBN)
+   +---
+   |  TLVs (repeated M times)
+   +---
+
+This packet must preceed any other packet defined by this specification.
+
+The data is a sequence of TLVs in any order. Duplicate tags are not
+allowed.
+
+The following tags are defined by this spec:
+
+  Tag: 1 (Version)
+  Required: yes
+  Value: Protocol version as an MBN
+
+This specification defines version 1 of the procotol.
+
+Tags [2..63] are reserved for use by the future versions of the core
+protocol. Application specific protocols can add their own protocol
+specific tags to the start packet. Those tags have to start with 64.
+
+2.2. FINISH
+
+   +---+---+---+---+---+---+---+---+
+   |  0x02                         |
+   +---+---+---+---+---+---+---+---+
+   |  0x00
+   +---+---+---+---+---+---+---+---+
+
+Gracefully terminates the connection. No more packets are expected
+to come after this one, the transport connection can be closed.
+
+2.3. NOTIFY
+
+   +---+---+---+---+---+---+---+---+
+   |  0x03                         |
+   +---+---+---+---+---+---+---+---+
+   |  N (unsigned MBN)
+   +---
+   |  IID (unsigned MBN)
+   +---
+   |  CODE (unsigned MBN)
+   +---
+   |  DATA (N - sizeof IID - sizeof CODE) bytes
+   +---
+
+One-way notification which doesn't require a response.
+
+IID is the interface id, must be in [1..0x1fffff] range (21 bit)
+CODE is the notification code, must be in [1..0x1fffff] range (21 bit)
+DATA is optional, can be empty
+
+2.4. REQUEST
+
+   +---+---+---+---+---+---+---+---+
+   |  0x04                         |
+   +---+---+---+---+---+---+---+---+
+   |  N (unsigned MBN)
+   +---
+   |  IID (unsigned MBN)
+   +---
+   |  CODE (unsigned MBN)
+   +---
+   |  ID (unsigned MBN)
+   +---
+   |  FLAGS (unsigned MBN)
+   +---
+   |  DATA (the remaining part of the packet)
+   +---
+
+Request that may expect a response. The peer sends back exactly one
+RESULT or ERROR packet with the same ID.
+
+IID is the interface id, must be in [1..0x1fffff] range (21 bit)
+CODE is the request code, must be in [1..0x1fffff] range (21 bit)
+ID is copied to the RESULT or ERROR packet [0..0xfffffff] (28 bits)
+FLAGS is a bitmask (see below)
+DATA is optional, can be empty
+
+The following flags are defined in version 1 of the protocol:
+
+0x01 ONE_WAY - no RESULT or ERROR packet is expected back
+0x02 NO_RESULT_DATA - RESULT is to be sent back without the data
+
+NO_RESULT_DATA is redundant (but allowed) if ONE_WAY flag is set.
+
+Unknown flags are ignored.
+
+2.5. RESULT
+
+   +---+---+---+---+---+---+---+---+
+   |  0x05                         |
+   +---+---+---+---+---+---+---+---+
+   |  N (unsigned MBN)
+   +---
+   |  ID (unsigned MBN)
+   +---
+   |  DATA (the remaining part of the packet)
+   +---
+
+This packet is sent back in response to each handled request.
+The ID allows the peer to map it back to the original request.
+Each request must eventually receive a RESULT or ERROR response
+(but not both).
+
+ID is copied from the REQUEST packet
+DATA is optional, can be empty
+
+2.6. ERROR
+
+   +---+---+---+---+---+---+---+---+
+   |  0x06                         |
+   +---+---+---+---+---+---+---+---+
+   |  N (unsigned MBN)
+   +---
+   |  ID (unsigned MBN)
+   +---
+   |  ERROR CODE (unsigned MBN)
+   +---
+
+This packet is sent back in response to each unhandled request.
+The ID allows the peer to map it back to the original request.
+Each request must eventually receive a RESULT or ERROR response
+(but not both).
+
+ID is copied from the REQUEST packet
+ERROR is one of the following error codes:
+
+   1. Unspecified error
+   2. Packet format error
+   3. Unknown request code
+   4. Request cancelled
+
+2.7. CANCEL
+
+   +---+---+---+---+---+---+---+---+
+   |  0x07                         |
+   +---+---+---+---+---+---+---+---+
+   |  N (unsigned MBN)
+   +---
+   |  ID (unsigned MBN)
+   +---
+
+Notifies the callee that the caller has cancelled the specified
+REQUEST. This may be useful for long-standing requests which don't
+get completed immediately but remain pending for arbitrarily long
+time.
+
+Since there's no way to perfectly synchronize the two sides of the
+RPC connection, the recipient must be ready to receive a CANCEL
+for the already completed request. Similarly, the sender of the
+CANCEL packet must be ready to later receive RESULT or ERROR for
+the cancelled request.

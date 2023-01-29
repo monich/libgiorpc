@@ -1,0 +1,15 @@
+*~
+build
+unit/coverage/libgiorpc.gcov
+unit/coverage/report
+debian/.debhelper
+debian/files
+debian/libgiorpc-dev.debhelper.log
+debian/libgiorpc-dev.install
+debian/libgiorpc-dev.substvars
+debian/libgiorpc-dev
+debian/libgiorpc.debhelper.log
+debian/libgiorpc.install
+debian/libgiorpc.substvars
+debian/libgiorpc
+debian/tmp
