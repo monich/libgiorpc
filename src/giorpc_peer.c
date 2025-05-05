@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Slava Monich <slava@monich.com>
+ * Copyright (C) 2023-2025 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -2632,9 +2632,9 @@ giorpc_peer_request_proc(
      */
     if (!giorpc_peer_request_locked(self, call, req->data)) {
         if (giorpc_peer_call_steal(self, call->id)) {
-            GError* error = giorpc_peer_error_abandoned();
-
             if (call->response) {
+                GError* error = giorpc_peer_error_abandoned();
+
                 call->response(&self->peer, NULL, error, call->user_data);
                 g_error_free(error);
             }
