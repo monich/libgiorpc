@@ -571,10 +571,11 @@ giorpc_peer_call_id_valid(
 {
     gboolean valid = FALSE;
 
-    if (id && self->requests) {
+    if (id) {
         /* Lock */
         g_mutex_lock(&self->requests_mutex);
-        valid = g_hash_table_contains(self->requests, GUINT_TO_POINTER(id));
+        valid = (self->requests &&
+            g_hash_table_contains(self->requests, GUINT_TO_POINTER(id)));
         g_mutex_unlock(&self->requests_mutex);
         /* Unlock */
     }
@@ -2943,6 +2944,7 @@ giorpc_peer_object_finalize(
 
     RLOG(self, "Destroyed");
     giorpc_peer_writeq_flush(self);
+    /* coverity[missing_lock] */
     if (self->requests) {
         /*
          * There's no need to synchronize access to the hashtable because
