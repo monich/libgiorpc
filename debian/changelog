@@ -1,3 +1,10 @@
+libgiorpc (1.0.1) unstable; urgency=low
+
+  * Fixed a memory leak
+  * Silenced coverity scan warnings
+
+ -- Slava Monich <slava@monich.com>  Tue, 06 May 2025 05:01:49 +0300
+
 libgiorpc (1.0.0) unstable; urgency=low
 
   * Initial release

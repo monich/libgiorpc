@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Slava Monich <slava@monich.com>
+ * Copyright (C) 2023-2025 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -56,8 +56,8 @@
 
 #define GIORPC_VERSION_MAJOR   1
 #define GIORPC_VERSION_MINOR   0
-#define GIORPC_VERSION_RELEASE 0
-#define GIORPC_VERSION_STRING  "1.0.0"
+#define GIORPC_VERSION_RELEASE 1
+#define GIORPC_VERSION_STRING  "1.0.1"
 
 /* Version as a single word */
 #define GIORPC_VERSION_(v1,v2,v3) \
@@ -75,6 +75,7 @@
 
 /* Specific versions */
 #define GIORPC_VERSION_1_0_0 GIORPC_VERSION_(1,0,0)
+#define GIORPC_VERSION_1_0_1 GIORPC_VERSION_(1,0,1)
 
 #endif /* GIORPC_VERSION_H */
 
