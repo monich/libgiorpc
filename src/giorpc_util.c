@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023-2024 Slava Monich <slava@monich.com>
+ * Copyright (C) 2023-2025 Slava Monich <slava@monich.com>
  *
  * You may use this file under the terms of the BSD license as follows:
  *
@@ -271,6 +271,7 @@ giorpc_write_all_async(
     write->nbytes = 0;
     write->callback = callback;
     write->user_data = user_data;
+    /* coverity[resource_leak:FALSE] */
     g_output_stream_write_async(out, buffer, count, G_PRIORITY_DEFAULT,
         cancel, giorpc_write_all_async_callback, write);
 }
