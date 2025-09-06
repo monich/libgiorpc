@@ -42,7 +42,7 @@ Multi-byte numbers are unsigned.
 
 1.2. TLV block
 
-A structure contiaining generic tagged data.
+A structure containing generic tagged data.
 
    +---------------
    |  T (MBN)       Tag (non-zero)
@@ -110,7 +110,7 @@ Packets of unknown types should be skipped and ignored.
    |  TLVs (repeated M times)
    +---
 
-This packet must preceed any other packet defined by this specification.
+This packet must precede any other packet defined by this specification.
 
 The data is a sequence of TLVs in any order. Duplicate tags are not
 allowed.
@@ -121,7 +121,7 @@ The following tags are defined by this spec:
   Required: yes
   Value: Protocol version as an MBN
 
-This specification defines version 1 of the procotol.
+This specification defines version 1 of the protocol.
 
 Tags [2..63] are reserved for use by the future versions of the core
 protocol. Application specific protocols can add their own protocol
